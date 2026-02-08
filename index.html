@@ -71,7 +71,7 @@
       border: 1px solid rgba(229,57,53,0.14);
     }
 
-    /* subtle hearts pattern */
+    /* subtle pattern */
     .story-frame::before{
       content: "";
       position: absolute;
@@ -271,9 +271,106 @@
       font-weight: 900;
     }
 
-    @media (max-width: 380px){
-      .title{ font-size: 26px; }
-      .prediction-text{ font-size: 17px; }
+    /* -------- Admin -------- */
+    .admin-card{
+      width: 100%;
+      max-width: 760px;
+      border-radius: 26px;
+      background: rgba(255,255,255,0.84);
+      border: 1px solid rgba(255,90,138,0.22);
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+
+    .admin-head{
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .admin-title{
+      font-size: 18px;
+      font-weight: 1000;
+      margin: 0;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .admin-pill{
+      font-weight: 1000;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.78);
+      border: 1px solid rgba(229,57,53,0.12);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .admin-grid{
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .admin-item{
+      border-radius: 18px;
+      padding: 12px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid rgba(255,90,138,0.18);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .admin-row{
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .admin-id{
+      font-weight: 1000;
+      font-size: 14px;
+    }
+
+    .admin-actions{
+      display: flex;
+      gap: 8px;
+    }
+
+    .mini-btn{
+      border-radius: 12px;
+      padding: 10px 10px;
+      font-size: 13px;
+      font-weight: 1000;
+      border: 1px solid rgba(229,57,53,0.12);
+      background: rgba(255,255,255,0.8);
+      cursor: pointer;
+    }
+
+    .mini-btn.primary{
+      border: 0;
+      color: white;
+      background: linear-gradient(135deg, var(--red), var(--pink));
+    }
+
+    .admin-preview{
+      font-size: 13px;
+      line-height: 1.45;
+      font-weight: 900;
+      opacity: 0.88;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    @media (max-width: 520px){
+      .admin-grid{ grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -283,7 +380,7 @@
 
   <script>
     // ----------------------------
-    // 1) Predictions (placeholder)
+    // 1) Predictions (PLACEHOLDER)
     // ----------------------------
     const predictions = Array.from({ length: 30 }, (_, i) => `Prediction${String(i+1).padStart(2, '0')}`);
 
@@ -302,6 +399,20 @@
       return id;
     }
 
+    function isAdminMode(){
+      const params = new URLSearchParams(window.location.search);
+      return params.get("admin") === "1";
+    }
+
+    function baseURL(){
+      // always keep only origin + pathname (no query)
+      return window.location.origin + window.location.pathname;
+    }
+
+    function makePredictionLink(id){
+      return `${baseURL()}?id=${id}`;
+    }
+
     function trackPredictionView(id){
       if(typeof gtag === "function"){
         gtag('event', 'prediction_view', {
@@ -311,14 +422,90 @@
       }
     }
 
+    function escapeHTML(str){
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    async function copyText(text){
+      try{
+        await navigator.clipboard.writeText(text);
+        alert("คัดลอกลิงก์แล้ว");
+      }catch(e){
+        // fallback
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        ta.remove();
+        alert("คัดลอกลิงก์แล้ว");
+      }
+    }
+
     // ----------------------------
     // 3) Render
     // ----------------------------
     const app = document.getElementById("app");
     const id = getIdFromURL();
+    const admin = isAdminMode();
 
-    // If no id => show scan-again screen only
-    if(!id){
+    // ADMIN MODE
+    if(admin){
+      app.style.maxWidth = "760px";
+      app.innerHTML = `
+        <div class="admin-card">
+          <div class="admin-head">
+            <h1 class="admin-title">🧸💗 HUBHUG • ADMIN</h1>
+            <div class="admin-pill">25/02/69</div>
+          </div>
+
+          <div class="admin-grid" id="adminGrid"></div>
+        </div>
+      `;
+
+      const grid = document.getElementById("adminGrid");
+
+      for(let i=1; i<=30; i++){
+        const link = makePredictionLink(i);
+        const preview = predictions[i-1];
+
+        const item = document.createElement("div");
+        item.className = "admin-item";
+        item.innerHTML = `
+          <div class="admin-row">
+            <div class="admin-id">Prediction ${String(i).padStart(2,'0')}</div>
+            <div class="admin-actions">
+              <button class="mini-btn" data-copy="${link}">Copy link</button>
+              <button class="mini-btn primary" data-open="${link}">Open</button>
+            </div>
+          </div>
+          <div class="admin-preview">${escapeHTML(preview)}</div>
+        `;
+        grid.appendChild(item);
+      }
+
+      grid.addEventListener("click", async (e) => {
+        const btn = e.target.closest("button");
+        if(!btn) return;
+
+        const copy = btn.getAttribute("data-copy");
+        const open = btn.getAttribute("data-open");
+
+        if(copy){
+          await copyText(copy);
+        }
+        if(open){
+          window.open(open, "_blank");
+        }
+      });
+
+    } else if(!id){
+      // NORMAL MODE but NO id
       app.innerHTML = `
         <div class="error-card">
           <div class="error-emoji">🧸💗</div>
@@ -329,7 +516,8 @@
           <div class="hint">สแกนจากการ์ดอีกครั้งเพื่อรับคำทำนายของคุณ</div>
         </div>
       `;
-    }else{
+    } else {
+      // NORMAL MODE with id
       const predictionText = predictions[id-1];
 
       trackPredictionView(id);
@@ -407,18 +595,6 @@
           btn.textContent = "บันทึก";
         }
       });
-    }
-
-    // ----------------------------
-    // 4) Security: escape HTML
-    // ----------------------------
-    function escapeHTML(str){
-      return String(str)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
     }
   </script>
 </body>
