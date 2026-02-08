@@ -21,7 +21,6 @@
     :root{
       --red: #E53935;
       --pink: #FF5A8A;
-      --pink2: #FF89AE;
       --softPink: #FFE3EC;
       --white: #FFFFFF;
       --text: #232323;
@@ -35,7 +34,6 @@
       font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Thai", Arial, sans-serif;
       color: var(--text);
 
-      /* Cozy warm pink/red */
       background:
         radial-gradient(900px 700px at 20% 10%, rgba(255,255,255,0.95), rgba(255,227,236,0.72)),
         radial-gradient(900px 700px at 85% 25%, rgba(255,90,138,0.40), rgba(255,255,255,0.0)),
@@ -230,12 +228,6 @@
       box-shadow: none;
     }
 
-    .btn-help{
-      background: rgba(255,255,255,0.86);
-      color: #222;
-      border: 1px solid rgba(255,90,138,0.22);
-    }
-
     /* -------- Error screen -------- */
     .error-card{
       width: 100%;
@@ -311,7 +303,6 @@
     }
 
     function trackPredictionView(id){
-      // GA4 custom event
       if(typeof gtag === "function"){
         gtag('event', 'prediction_view', {
           prediction_id: id,
@@ -326,8 +317,7 @@
     const app = document.getElementById("app");
     const id = getIdFromURL();
 
-    // RULE: Participants should NOT see a main page.
-    // If no id => show scan-again screen only.
+    // If no id => show scan-again screen only
     if(!id){
       app.innerHTML = `
         <div class="error-card">
@@ -342,7 +332,6 @@
     }else{
       const predictionText = predictions[id-1];
 
-      // Track
       trackPredictionView(id);
 
       app.innerHTML = `
@@ -370,24 +359,16 @@
             <div class="footer">
               <div class="brand">
                 <div class="mini">#HUBHUG</div>
-                <div class="logo">COZY • LOVE • FUN</div>
-              </div>
-              <div style="font-size:12px; font-weight:900; opacity:0.85; line-height:1.35;">
-                บันทึกรูปนี้แล้วแชร์ลงสตอรี่ได้เลย 🧸💗
+                <div class="logo">25/02/69</div>
               </div>
             </div>
           </div>
         </div>
 
         <div class="controls">
-          <button class="btn-save" id="saveBtn">บันทึกรูป (แนวตั้ง)</button>
-          <button class="btn-help" id="helpBtn">สแกนใหม่</button>
+          <button class="btn-save" id="saveBtn">บันทึก</button>
         </div>
       `;
-
-      document.getElementById("helpBtn").addEventListener("click", () => {
-        alert("ถ้าต้องการดูคำทำนายใหม่ กรุณาสแกน QR จากการ์ดอีกครั้งนะครับ");
-      });
 
       document.getElementById("saveBtn").addEventListener("click", async () => {
         const btn = document.getElementById("saveBtn");
@@ -412,7 +393,6 @@
             URL.revokeObjectURL(url);
           }, "image/png");
 
-          // Track save
           if(typeof gtag === "function"){
             gtag('event', 'prediction_save_image', {
               prediction_id: id
@@ -421,10 +401,10 @@
 
         }catch(err){
           console.error(err);
-          alert("บันทึกรูปไม่สำเร็จ ลองใหม่อีกครั้งนะ");
+          alert("บันทึกไม่สำเร็จ ลองใหม่อีกครั้งนะ");
         }finally{
           btn.disabled = false;
-          btn.textContent = "บันทึกรูป (แนวตั้ง)";
+          btn.textContent = "บันทึก";
         }
       });
     }
